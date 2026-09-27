@@ -154,6 +154,14 @@ export const SurveyInsights: React.FC<SurveyInsightsProps> = ({
 
   return (
     <div className="space-y-6">
+
+
+    {isLoading && (
+      <div className="bg-[#FFFFFF] border border-[#D9DCD2] p-4 rounded-2xl shadow-xs flex items-center gap-2 text-sm text-[#58655E]">
+        <RefreshCw className="w-4 h-4 animate-spin text-[#1F4D3D]" />
+        <span>Loading survey responses from Google Sheet…</span>
+      </div>
+    )}
       
       {/* Header Banner */}
       <div className="bg-[#FFFFFF] border border-[#D9DCD2] p-6 rounded-2xl shadow-xs">
