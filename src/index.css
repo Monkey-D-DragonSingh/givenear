@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-paper: #F3F4EE;
+    --paper-card: #FFFFFF;
+    --forest-primary: #1F4D3D;
+    --forest-hover: #173B2E;
+    --forest-light: #EBF2EE;
+    --marigold: #E8A33D;
+    --marigold-hover: #D6912A;
+    --marigold-light: #FDF4E5;
+    --terracotta: #C86446;
+    --border-hairline: #D9DCD2;
+    --text-primary: #1A211E;
+    --text-secondary: #58655E;
+    --text-muted: #828F87;
+  }
+
+  body {
+    background-color: var(--bg-paper);
+    color: var(--text-primary);
+    font-family: 'Karla', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, .font-serif-heading {
+    font-family: 'Fraunces', Georgia, serif;
+  }
+}
+
+/* Custom Leaflet Map styling to match aesthetic */
+.leaflet-container {
+  font-family: 'Karla', sans-serif !important;
+  border-radius: 0.75rem;
+  z-index: 10;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(31, 77, 61, 0.15), 0 8px 10px -6px rgba(31, 77, 61, 0.1);
+  border: 1px solid #D9DCD2;
+  padding: 0.25rem;
+  background-color: #FFFFFF;
+}
+
+.leaflet-popup-content {
+  margin: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
