@@ -12,6 +12,7 @@ import { NgoNeedsBoard } from './components/NgoNeedsBoard';
 import { SurveyInsights } from './components/SurveyInsights';
 import { GoogleSheetSetup } from './components/GoogleSheetSetup';
 import { ClaimModal } from './components/ClaimModal';
+import { LoginForm } from './components/LoginForm';
 import { CheckCircle2 } from 'lucide-react';
 
 export function App() {
@@ -21,6 +22,8 @@ export function App() {
   const [needs, setNeeds] = useState<NgoNeed[]>([]);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [claimModalItem, setClaimModalItem] = useState<DonationItem | null>(null);
+  const [showLogin, setShowLogin] = useState<boolean>(false);
+  const [user, setUser] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
 
   const showNotification = (msg: string) => {
@@ -138,6 +141,12 @@ export function App() {
         config={config}
         onRefreshData={loadData}
         isSyncing={isSyncing}
+        user={user}
+        onLoginClick={() => setShowLogin(true)}
+        onLogoutClick={() => {
+          setUser(null);
+          showNotification('Logged out successfully');
+        }}
       />
 
       {/* Main Container */}
@@ -200,6 +209,18 @@ export function App() {
           item={claimModalItem}
           onClose={() => setClaimModalItem(null)}
           onConfirmClaim={handleConfirmClaim}
+        />
+      )}
+
+      {/* Login Modal */}
+      {showLogin && (
+        <LoginForm
+          onClose={() => setShowLogin(false)}
+          onLogin={(email) => {
+            setUser(email);
+            setShowLogin(false);
+            showNotification(`Welcome, ${email}!`);
+          }}
         />
       )}
 

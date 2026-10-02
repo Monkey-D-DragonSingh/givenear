@@ -60,6 +60,13 @@ export interface SyncConfig {
   googleFormSurveyUrl?: string;
 }
 
+export interface UserSession {
+  name: string;
+  phone: string;
+  role: 'donor' | 'ngo';
+  loggedInAt: string;
+}
+
 export interface CepSurveyStats {
   totalNgoRespondents: number;
   totalDonorRespondents: number;

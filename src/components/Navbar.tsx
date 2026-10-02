@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { SyncConfig } from '../types';
 import { 
   HeartHandshake, Layers, PlusCircle, Building2, 
-  BarChart3, FileSpreadsheet, Menu, X, Database, RefreshCw
+  BarChart3, FileSpreadsheet, Menu, X, Database, RefreshCw, LogIn, LogOut
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -13,6 +13,9 @@ interface NavbarProps {
   config: SyncConfig;
   onRefreshData: () => Promise<void>;
   isSyncing: boolean;
+  user?: string | null;
+  onLoginClick: () => void;
+  onLogoutClick: () => void;
 }
 
 interface NavItemDef {
