@@ -32,7 +32,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   availableCount,
   config,
   onRefreshData,
-  isSyncing
+  isSyncing,
+  user,
+  onLoginClick,
+  onLogoutClick
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -121,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Backend Status Badge & Refresh */}
+          {/* Backend Status Badge, Refresh & Auth */}
           <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => onSelectTab('setup')}
@@ -146,6 +149,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
             </button>
+
+            {/* Auth: Login / Logout */}
+            {user ? (
+              <button
+                onClick={onLogoutClick}
+                title={`Logged in as ${user}`}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-[#F3F4EE] hover:bg-[#EBF2EE] text-[#1A211E] border border-[#D9DCD2] transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5 text-[#C86446]" />
+                <span className="hidden md:inline">Logout</span>
+              </button>
+            ) : (
+              <button
+                onClick={onLoginClick}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-[#1F4D3D] hover:bg-[#173B2E] text-white transition-colors cursor-pointer"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Login</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -198,6 +221,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+
+          {/* Auth: Login / Logout (Mobile) */}
+          {user ? (
+            <button
+              onClick={() => { onLogoutClick(); setMobileMenuOpen(false); }}
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-[#C86446] hover:bg-[#F3F4EE] transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout ({user})</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => { onLoginClick(); setMobileMenuOpen(false); }}
+              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 bg-[#1F4D3D] text-white"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Login</span>
+            </button>
+          )}
         </div>
       )}
     </header>
