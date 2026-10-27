@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, Legend, CartesianGrid 
+  PieChart, Pie, Cell, Legend, CartesianGrid,
+  LineChart, Line, Area,
 } from 'recharts';
 import { 
   BarChart3, TrendingUp, RefreshCw, CheckCircle2, 
@@ -151,6 +152,8 @@ export const SurveyInsights: React.FC<SurveyInsightsProps> = ({
     : (surveyStats?.trustFactors || []);
 
   const studentQuotes = surveyStats?.studentQuotes || [];
+  const responsesOverTime = surveyStats?.responsesOverTime || [];
+  const materialDonationsByCategory = surveyStats?.materialDonationsByCategory || [];
 
   return (
     <div className="space-y-6">
@@ -374,6 +377,49 @@ export const SurveyInsights: React.FC<SurveyInsightsProps> = ({
             </div>
           </div>
 
+          {/* Chart 0: Survey Response Volume Over Time */}
+          <div className="bg-[#FFFFFF] border border-[#D9DCD2] p-6 rounded-2xl shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <div>
+                <h3 className="font-serif-heading text-lg font-bold text-[#1A211E]">
+                  Survey Response Volume Over Time
+                </h3>
+                <p className="text-xs text-[#58655E]">
+                  Daily verified responses collected via Google Forms across all surveyed segments.
+                </p>
+              </div>
+              <span className="text-[10px] uppercase font-bold text-[#1F4D3D] bg-[#EBF2EE] px-2 py-0.5 rounded self-start sm:self-auto">
+                Live Trend
+              </span>
+            </div>
+
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={responsesOverTime} margin={{ top: 10, right: 20, left: -20, bottom: 10 }}>
+                  <defs>
+                    <linearGradient id="surveyResponseFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1F4D3D" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#1F4D3D" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="period" tick={{ fontSize: 10, fill: '#58655E' }} stroke="#D9DCD2" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#58655E' }} stroke="#D9DCD2" />
+                  <Tooltip
+                    formatter={(val: any) => [`${val} responses`, 'Responses']}
+                    contentStyle={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #D9DCD2', fontSize: '12px' }}
+                  />
+                  <Area type="monotone" dataKey="count" stroke="#1F4D3D" strokeWidth={2} fill="url(#surveyResponseFill)" />
+                  <Line type="monotone" dataKey="count" stroke="#E8A33D" strokeWidth={3} dot={{ r: 3, fill: '#E8A33D' }} activeDot={{ r: 5, fill: '#E8A33D' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="text-[11px] text-[#828F87] pt-3 border-t border-[#D9DCD2] mt-2">
+              *Showing the collected response trend. Daily aggregation unlocks as more timestamped responses arrive.
+            </div>
+          </div>
+
           {/* Charts Row 1: Preferred Materials & Willingness */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
@@ -575,6 +621,59 @@ export const SurveyInsights: React.FC<SurveyInsightsProps> = ({
                 Top Priority: Verified requirements and transparent NGO identity are non-negotiable.
               </div>
             </div>
+          </div>
+
+          {/* Chart 5: Donations by Material & Respondent Segment (Stacked) */}
+          <div className="bg-[#FFFFFF] border border-[#D9DCD2] p-6 rounded-2xl shadow-2xs">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-serif-heading text-lg font-bold text-[#1A211E]">
+                Donations by Material &amp; Respondent Segment
+              </h3>
+              <span className="text-[10px] uppercase font-bold text-[#1F4D3D] bg-[#EBF2EE] px-2 py-0.5 rounded">
+                Google Form Q17 Segments
+              </span>
+            </div>
+            <p className="text-xs text-[#58655E] mb-4">
+              How donors, NGOs, and the public distribute donations across materials.
+            </p>
+
+            <div className="h-[320px] w-full">
+              {materialDonationsByCategory.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="horizontal"
+                    data={materialDonationsByCategory}
+                    margin={{ top: 10, right: 20, left: 10, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#58655E' }} />
+                    <YAxis type="category" dataKey="material" width={150} tick={{ fontSize: 10, fill: '#1A211E' }} />
+                    <Tooltip
+                      formatter={(val: any, name: any) => [
+                        `${val} ${name === 'donor' ? 'Donors' : name === 'public' ? 'Public Respondents' : 'NGOs'}`,
+                        name === 'donor' ? 'Donors' : name === 'public' ? 'Public Respondents' : 'NGOs'
+                      ]}
+                      contentStyle={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #D9DCD2', fontSize: '12px' }}
+                    />
+                    <Bar dataKey="donor" stackId="segment" fill="#1F4D3D" radius={[0, 6, 6, 0]} />
+                    <Bar dataKey="public" stackId="segment" fill="#E8A33D" radius={[0, 6, 6, 0]} />
+                    <Bar dataKey="ngo" stackId="segment" fill="#828F87" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-sm text-[#828F87]">
+                  No segmented donation data yet. Add responses to the Google Sheet to see breakdowns.
+                </div>
+              )}
+            </div>
+
+            {materialDonationsByCategory.length > 0 && (
+              <div className="flex items-center justify-center gap-5 pt-2 text-[11px] text-[#828F87]">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#1F4D3D' }} />Donors</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#E8A33D' }} />Public Respondents</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#828F87' }} />NGOs</span>
+              </div>
+            )}
           </div>
 
           {/* Section: Live Student Quotes Highlight */}

@@ -31,6 +31,8 @@ export interface AggregatedSurveyStats {
   platformWillingness: { category: string; value: number; count: number; color: string }[];
   trustFactors: { name: string; count: number; percentage: number }[];
   topFeatures: { name: string; count: number; percentage: number }[];
+  responsesOverTime: { period: string; count: number }[];
+  materialDonationsByCategory: { material: string; donor: number; public: number; ngo: number }[];
   studentQuotes: { name: string; location: string; category: string; quote: string }[];
   lastSyncedAt: string;
   source: 'google_sheet' | 'fallback';
@@ -86,6 +88,14 @@ function splitMultiOptions(raw: string): string[] {
     .map(s => s.trim())
     .filter(Boolean);
 }
+
+// Helper to turn an ISO date key (YYYY-MM-DD) into a compact chart label (e.g. "Oct 12")
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const formatDayLabel = (dayKey: string): string => {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  if (!y || !m || !d) return dayKey;
+  return `${MONTH_SHORT[(m || 1) - 1]} ${d}`;
+};
 
 // Convert CSV rows into structured respondents
 export function processSurveyRows(rows: string[][]): {
@@ -268,6 +278,41 @@ export function processSurveyRows(rows: string[][]): {
     }))
     .sort((a, b) => b.count - a.count);
 
+  // Responses over time, grouped by day (from "YYYY-MM-DD HH:MM:SS GMT..." timestamps)
+  const timeCounts = new Map<string, number>();
+  respondents.forEach(res => {
+    const dayKey = (res.timestamp || '').split(' ')[0];
+    if (!dayKey) return;
+    timeCounts.set(dayKey, (timeCounts.get(dayKey) || 0) + 1);
+  });
+  const responsesOverTime = Array.from(timeCounts.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([dayKey, count]) => ({
+      period: formatDayLabel(dayKey),
+      count
+    }));
+
+  // Donations segmented by respondent category (Donor / Public / NGO)
+  const matSegCounts: Record<string, { donor: number; public: number; ngo: number }> = {};
+  respondents.forEach(res => {
+    const seg = res.category === 'NGO Representative' ? 'ngo'
+      : res.category === 'Donor' ? 'donor'
+      : 'public';
+    res.materialsDonated.forEach(m => {
+      if (!matSegCounts[m]) matSegCounts[m] = { donor: 0, public: 0, ngo: 0 };
+      matSegCounts[m][seg] = (matSegCounts[m][seg] || 0) + 1;
+    });
+  });
+  const materialDonationsByCategory = Object.entries(matSegCounts)
+    .map(([material, segs]) => ({
+      material,
+      donor: segs.donor || 0,
+      public: segs.public || 0,
+      ngo: segs.ngo || 0
+    }))
+    .filter((entry) => entry.donor + entry.public + entry.ngo > 0)
+    .sort((a, b) => (b.donor + b.public + b.ngo) - (a.donor + a.public + a.ngo));
+
   return {
     respondents,
     stats: {
@@ -280,6 +325,8 @@ export function processSurveyRows(rows: string[][]): {
       platformWillingness,
       trustFactors,
       topFeatures,
+      responsesOverTime,
+      materialDonationsByCategory,
       studentQuotes,
       lastSyncedAt: new Date().toLocaleTimeString(),
       source: 'google_sheet'
