@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { NgoNeed, DonationCategory } from '../types';
+import type { NgoNeed, DonationCategory, UserSession, UserRole } from '../types';
 import { 
   Building2, AlertCircle, Phone, Calendar, 
   MapPin, PlusCircle, MessageSquare, ExternalLink, X, HeartHandshake 
@@ -8,6 +8,8 @@ import {
 interface NgoNeedsBoardProps {
   needs: NgoNeed[];
   onPostNewNeed: (needData: Omit<NgoNeed, 'id' | 'status'>) => Promise<void>;
+  user?: UserSession | null;
+  onRequireAuth?: (role: UserRole, action?: 'postNeed') => void;
 }
 
 const CATEGORIES: DonationCategory[] = [
@@ -21,7 +23,7 @@ const CATEGORIES: DonationCategory[] = [
   'Other Essentials'
 ];
 
-export const NgoNeedsBoard: React.FC<NgoNeedsBoardProps> = ({ needs, onPostNewNeed }) => {
+export const NgoNeedsBoard: React.FC<NgoNeedsBoardProps> = ({ needs, onPostNewNeed, user, onRequireAuth }) => {
   const [showModal, setShowModal] = useState(false);
   const [fulfillModalNeed, setFulfillModalNeed] = useState<NgoNeed | null>(null);
 
@@ -39,6 +41,22 @@ export const NgoNeedsBoard: React.FC<NgoNeedsBoardProps> = ({ needs, onPostNewNe
   const [reason, setReason] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const handlePostClick = () => {
+    if (user?.role === 'ngo') {
+      setShowModal(true);
+    } else {
+      onRequireAuth?.('ngo', 'postNeed');
+    }
+  };
+
+  const handleFulfillClick = (need: NgoNeed) => {
+    if (user?.role === 'donor') {
+      setFulfillModalNeed(need);
+    } else {
+      onRequireAuth?.('donor');
+    }
+  };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +113,7 @@ export const NgoNeedsBoard: React.FC<NgoNeedsBoardProps> = ({ needs, onPostNewNe
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handlePostClick}
           className="bg-[#1F4D3D] hover:bg-[#173B2E] text-white text-xs font-bold px-5 py-3 rounded-xl transition-colors shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
         >
           <PlusCircle className="w-4 h-4 text-[#E8A33D]" />
@@ -181,7 +199,7 @@ export const NgoNeedsBoard: React.FC<NgoNeedsBoardProps> = ({ needs, onPostNewNe
                 </div>
 
                 <button
-                  onClick={() => setFulfillModalNeed(need)}
+                  onClick={() => handleFulfillClick(need)}
                   className="bg-[#1F4D3D] hover:bg-[#173B2E] text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <HeartHandshake className="w-4 h-4 text-[#E8A33D]" />

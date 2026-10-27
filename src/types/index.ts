@@ -60,11 +60,29 @@ export interface SyncConfig {
   googleFormSurveyUrl?: string;
 }
 
-export interface UserSession {
+export type UserRole = 'donor' | 'ngo';
+
+export interface UserAccount {
+  email: string;
+  passwordHash: string;
   name: string;
   phone: string;
-  role: 'donor' | 'ngo';
+  role: UserRole;
+  regNumber?: string;
+  representative?: string;
+  createdAt: string;
+}
+
+export type AuthAction = 'postDonation' | 'postNeed' | 'claim';
+
+export interface UserSession {
+  email: string;
+  name: string;
+  phone: string;
+  role: UserRole;
   loggedInAt: string;
+  regNumber?: string;
+  representative?: string;
 }
 
 export interface CepSurveyStats {

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { DonationItem, NgoNeed, SyncConfig, DonationCategory, ItemCondition } from './types';
+import type { DonationItem, NgoNeed, SyncConfig, DonationCategory, ItemCondition, UserSession, UserRole, AuthAction } from './types';
 import { 
   getSavedConfig, saveConfig, fetchDonationsApi, 
   postDonationApi, claimDonationApi, getLocalNeeds, saveLocalNeeds 
 } from './services/api';
+import { getSavedUser, saveUser, clearUser } from './services/auth';
 import { Navbar } from './components/Navbar';
 import { HomeHero } from './components/HomeHero';
 import { DonationBoard } from './components/DonationBoard';
@@ -23,12 +24,79 @@ export function App() {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [claimModalItem, setClaimModalItem] = useState<DonationItem | null>(null);
   const [showLogin, setShowLogin] = useState<boolean>(false);
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUser] = useState<UserSession | null>(() => getSavedUser());
   const [notification, setNotification] = useState<string | null>(null);
+  const [pendingAuthRole, setPendingAuthRole] = useState<UserRole | null>(null);
+  const [pendingAuthAction, setPendingAuthAction] = useState<AuthAction | null>(null);
+  const [pendingClaimItem, setPendingClaimItem] = useState<DonationItem | null>(null);
 
   const showNotification = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 4000);
+  };
+
+  // ---- Auth handlers (Donor / NGO) ----
+  const handleLogin = (session: UserSession) => {
+    saveUser(session);
+    setUser(session);
+    setShowLogin(false);
+    setPendingAuthRole(null);
+    setPendingAuthAction(null);
+    setPendingClaimItem(null);
+
+    if (pendingAuthAction === 'claim' && pendingClaimItem) {
+      setClaimModalItem(pendingClaimItem);
+    }
+    if (pendingAuthAction === 'postDonation') {
+      setActiveTab('donate');
+    }
+    showNotification(`Welcome, ${session.name}!`);
+  };
+
+  const handleLogout = () => {
+    clearUser();
+    setUser(null);
+    showNotification('Logged out successfully');
+  };
+
+  const requestAuth = (role: UserRole, action?: AuthAction, pendingItem?: DonationItem | null) => {
+    setPendingAuthRole(role);
+    setPendingAuthAction(action ?? null);
+    setPendingClaimItem(pendingItem ?? null);
+    setShowLogin(true);
+    showNotification(`Please login as ${role === 'donor' ? 'Donor' : 'NGO'} to continue.`);
+  };
+
+  const handleSelectTab = (tab: 'home' | 'browse' | 'donate' | 'needs' | 'survey' | 'setup') => {
+    if (tab === 'donate') {
+      if (user?.role === 'donor') {
+        setActiveTab('donate');
+        return;
+      }
+      if (user?.role === 'ngo') {
+        showNotification('NGOs publish verified requirements from the NGO Needs board. Please login with an NGO account to continue.');
+        return;
+      }
+      requestAuth('donor', 'postDonation');
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  const handleHeroNavigate = (tab: 'browse' | 'donate' | 'needs' | 'survey' | 'setup') => {
+    if (tab === 'donate') {
+      if (user?.role === 'donor') {
+        setActiveTab('donate');
+        return;
+      }
+      if (user?.role === 'ngo') {
+        showNotification('NGOs publish verified requirements from the NGO Needs board. Please login with an NGO account to continue.');
+        return;
+      }
+      requestAuth('donor', 'postDonation');
+      return;
+    }
+    setActiveTab(tab);
   };
 
   // Initial load
@@ -52,6 +120,11 @@ export function App() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Scroll back to top when switching sections
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
 
   // Handle donation submission
   const handlePostDonation = async (itemData: {
@@ -136,24 +209,26 @@ export function App() {
       {/* Navigation */}
       <Navbar
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleSelectTab}
         availableCount={availableCount}
         config={config}
         onRefreshData={loadData}
         isSyncing={isSyncing}
         user={user}
-        onLoginClick={() => setShowLogin(true)}
-        onLogoutClick={() => {
-          setUser(null);
-          showNotification('Logged out successfully');
+        onLoginClick={() => {
+          setPendingAuthRole(null);
+          setPendingAuthAction(null);
+          setPendingClaimItem(null);
+          setShowLogin(true);
         }}
+        onLogoutClick={handleLogout}
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main key={activeTab} className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-up">
         {activeTab === 'home' && (
           <HomeHero
-            onNavigate={setActiveTab}
+            onNavigate={handleHeroNavigate}
             availableCount={availableCount}
             claimedCount={claimedCount}
             ngoCount={needs.length + 6}
@@ -165,6 +240,8 @@ export function App() {
             items={donations}
             onClaimClick={(item) => setClaimModalItem(item)}
             onPostNewClick={() => setActiveTab('donate')}
+            user={user}
+            onRequireAuth={(role, action) => requestAuth(role, action)}
           />
         )}
 
@@ -172,6 +249,7 @@ export function App() {
           <DonateForm
             onSubmit={handlePostDonation}
             onCancel={() => setActiveTab('browse')}
+            user={user}
           />
         )}
 
@@ -179,6 +257,8 @@ export function App() {
           <NgoNeedsBoard
             needs={needs}
             onPostNewNeed={handlePostNeed}
+            user={user}
+            onRequireAuth={(role, action) => requestAuth(role, action)}
           />
         )}
 
@@ -207,6 +287,7 @@ export function App() {
       {claimModalItem && (
         <ClaimModal
           item={claimModalItem}
+          user={user}
           onClose={() => setClaimModalItem(null)}
           onConfirmClaim={handleConfirmClaim}
         />
@@ -215,12 +296,14 @@ export function App() {
       {/* Login Modal */}
       {showLogin && (
         <LoginForm
-          onClose={() => setShowLogin(false)}
-          onLogin={(email) => {
-            setUser(email);
+          onClose={() => {
             setShowLogin(false);
-            showNotification(`Welcome, ${email}!`);
+            setPendingAuthRole(null);
+            setPendingAuthAction(null);
+            setPendingClaimItem(null);
           }}
+          onLogin={handleLogin}
+          defaultRole={pendingAuthRole ?? user?.role ?? 'donor'}
         />
       )}
 

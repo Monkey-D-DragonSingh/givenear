@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { DonationCategory, ItemCondition } from '../types';
+import type { DonationCategory, ItemCondition, UserSession } from '../types';
 import { POPULAR_INDIAN_CITIES } from '../data/mockData';
 import { 
   HeartHandshake, MapPin, Phone, User, Clock, 
@@ -22,6 +22,7 @@ interface DonateFormProps {
     notes: string;
   }) => Promise<void>;
   onCancel: () => void;
+  user?: UserSession | null;
 }
 
 const CATEGORIES: DonationCategory[] = [
@@ -41,7 +42,7 @@ const CONDITIONS: ItemCondition[] = [
   'Good Working Condition'
 ];
 
-export const DonateForm: React.FC<DonateFormProps> = ({ onSubmit, onCancel }) => {
+export const DonateForm: React.FC<DonateFormProps> = ({ onSubmit, onCancel, user }) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<DonationCategory>('Books & Stationery');
   const [quantity, setQuantity] = useState('');
@@ -50,8 +51,8 @@ export const DonateForm: React.FC<DonateFormProps> = ({ onSubmit, onCancel }) =>
   const [location, setLocation] = useState('');
   const [lat, setLat] = useState(28.6139);
   const [lng, setLng] = useState(77.2090);
-  const [donorName, setDonorName] = useState('');
-  const [donorPhone, setDonorPhone] = useState('');
+  const [donorName, setDonorName] = useState(user?.role === 'donor' ? user.name : '');
+  const [donorPhone, setDonorPhone] = useState(user?.role === 'donor' ? user.phone : '');
   const [pickupTimes, setPickupTimes] = useState('Weekdays after 6:00 PM or weekends anytime');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

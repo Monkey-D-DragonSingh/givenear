@@ -71,7 +71,7 @@ export const DonationMap: React.FC<DonationMapProps> = ({ items, onClaimClick })
   }, [items]);
 
   return (
-    <div className="w-full h-[540px] rounded-xl overflow-hidden border border-[#D9DCD2] bg-[#FFFFFF] shadow-sm relative">
+    <div className="w-full h-[420px] sm:h-[540px] rounded-xl overflow-hidden border border-[#D9DCD2] bg-[#FFFFFF] shadow-sm relative">
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}

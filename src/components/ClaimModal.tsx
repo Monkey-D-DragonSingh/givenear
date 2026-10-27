@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import type { DonationItem } from '../types';
+import type { DonationItem, UserSession } from '../types';
 import { X, CheckCircle, Calendar, Building2, User, Phone, MessageSquare, ExternalLink } from 'lucide-react';
 
 interface ClaimModalProps {
   item: DonationItem | null;
+  user?: UserSession | null;
   onClose: () => void;
   onConfirmClaim: (claimData: {
     id: string;
@@ -14,10 +15,10 @@ interface ClaimModalProps {
   }) => Promise<void>;
 }
 
-export const ClaimModal: React.FC<ClaimModalProps> = ({ item, onClose, onConfirmClaim }) => {
-  const [ngoName, setNgoName] = useState('');
-  const [representative, setRepresentative] = useState('');
-  const [phone, setPhone] = useState('');
+export const ClaimModal: React.FC<ClaimModalProps> = ({ item, user, onClose, onConfirmClaim }) => {
+  const [ngoName, setNgoName] = useState(user?.role === 'ngo' ? user.name : '');
+  const [representative, setRepresentative] = useState(user?.role === 'ngo' ? user.representative || user.name : '');
+  const [phone, setPhone] = useState(user?.role === 'ngo' ? user.phone : '');
   const [pickupDate, setPickupDate] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +56,7 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({ item, onClose, onConfirm
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-[#FFFFFF] border border-[#D9DCD2] rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-[#FFFFFF] border border-[#D9DCD2] rounded-2xl max-w-lg w-full shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto">
         
         {/* Header */}
         <div className="bg-[#1F4D3D] text-white px-6 py-4 flex items-center justify-between">

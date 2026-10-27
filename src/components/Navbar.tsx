@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { SyncConfig } from '../types';
+import type { SyncConfig, UserSession } from '../types';
 import { 
   HeartHandshake, Layers, PlusCircle, Building2, 
   BarChart3, FileSpreadsheet, Menu, X, Database, RefreshCw, LogIn, LogOut
@@ -13,7 +13,7 @@ interface NavbarProps {
   config: SyncConfig;
   onRefreshData: () => Promise<void>;
   isSyncing: boolean;
-  user?: string | null;
+  user?: UserSession | null;
   onLoginClick: () => void;
   onLogoutClick: () => void;
 }
@@ -38,6 +38,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogoutClick
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const userDisplayName = user?.name || user?.email || 'Member';
+  const userRoleLabel = user?.role === 'ngo' ? 'NGO Partner' : 'Verified Donor';
 
   const navItems: NavItemDef[] = [
     { id: 'home', label: 'Overview', icon: HeartHandshake },
@@ -152,14 +155,28 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Auth: Login / Logout */}
             {user ? (
-              <button
-                onClick={onLogoutClick}
-                title={`Logged in as ${user}`}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-[#F3F4EE] hover:bg-[#EBF2EE] text-[#1A211E] border border-[#D9DCD2] transition-colors cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5 text-[#C86446]" />
-                <span className="hidden md:inline">Logout</span>
-              </button>
+              <>
+                <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-[#F3F4EE] border border-[#D9DCD2]">
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-xs font-bold text-[#1A211E] max-w-[160px] truncate">{userDisplayName}</span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${
+                      user.role === 'ngo'
+                        ? 'bg-[#FDF4E5] text-[#D6912A] border-[#E8A33D]/30'
+                        : 'bg-[#EBF2EE] text-[#1F4D3D] border-[#1F4D3D]/10'
+                    }`}>
+                      {userRoleLabel}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={onLogoutClick}
+                  title={`Logged in as ${user.name} • ${user.email}`}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-[#F3F4EE] hover:bg-[#EBF2EE] text-[#1A211E] border border-[#D9DCD2] transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-[#C86446]" />
+                  <span className="hidden md:inline">Logout</span>
+                </button>
+              </>
             ) : (
               <button
                 onClick={onLoginClick}
@@ -224,13 +241,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Auth: Login / Logout (Mobile) */}
           {user ? (
-            <button
-              onClick={() => { onLogoutClick(); setMobileMenuOpen(false); }}
-              className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-[#C86446] hover:bg-[#F3F4EE] transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout ({user})</span>
-            </button>
+            <div className="space-y-1 pt-2 border-t border-[#D9DCD2]">
+              <div className="px-3 py-2.5 rounded-xl bg-[#F3F4EE] border border-[#D9DCD2]">
+                <div className="text-xs font-bold text-[#1A211E] truncate">{userDisplayName}</div>
+                <div className={`text-[10px] font-bold uppercase tracking-wider ${user.role === 'ngo' ? 'text-[#D6912A]' : 'text-[#1F4D3D]'}`}>
+                  {userRoleLabel}
+                </div>
+              </div>
+              <button
+                onClick={() => { onLogoutClick(); setMobileMenuOpen(false); }}
+                className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-[#C86446] hover:bg-[#F3F4EE] transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => { onLoginClick(); setMobileMenuOpen(false); }}

@@ -334,7 +334,7 @@ export const SurveyInsights: React.FC<SurveyInsightsProps> = ({
         <div className="space-y-6">
           
           {/* Key Metric Highlights */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-[#FFFFFF] border border-[#D9DCD2] p-5 rounded-2xl shadow-2xs">
               <span className="text-[11px] font-bold text-[#828F87] uppercase tracking-wider">Total Responses</span>
               <div className="font-serif-heading text-3xl font-extrabold text-[#1F4D3D] mt-1">

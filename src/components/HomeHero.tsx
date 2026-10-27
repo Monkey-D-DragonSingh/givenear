@@ -21,10 +21,10 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
     <div className="space-y-12 pb-8">
       
       {/* Hero Section */}
-      <section className="bg-[#FFFFFF] border border-[#D9DCD2] rounded-3xl p-6 sm:p-12 shadow-xs relative overflow-hidden">
+      <section className="bg-[#FFFFFF] border border-[#D9DCD2] rounded-3xl p-6 sm:p-12 shadow-xs relative overflow-hidden animate-fade-up">
         {/* Subtle decorative background motif */}
-        <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-[#EBF2EE] pointer-events-none -z-0 opacity-70 blur-2xl" />
-        <div className="absolute -left-16 -bottom-16 w-80 h-80 rounded-full bg-[#FDF4E5] pointer-events-none -z-0 opacity-70 blur-2xl" />
+        <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-[#EBF2EE] pointer-events-none -z-0 opacity-70 blur-2xl animate-float-soft" />
+        <div className="absolute -left-16 -bottom-16 w-80 h-80 rounded-full bg-[#FDF4E5] pointer-events-none -z-0 opacity-70 blur-2xl animate-float-soft" style={{ animationDelay: '-4.5s' }} />
 
         <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#EBF2EE] text-[#1F4D3D] border border-[#1F4D3D]/15">

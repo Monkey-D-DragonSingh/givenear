@@ -2,7 +2,25 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-Currently, two official plugins are available:
+## GiveNear — Login & Authentication
+
+The platform now has a complete client-side auth flow for both roles:
+
+- **Donors** (`donor@givenear.org` / `donor123` demo) can post donation listings for doorstep pickup.
+- **NGOs** (`ngo@givenear.org` / `ngo123` demo) can claim donation listings and publish verified NGO requirements.
+
+### Features
+
+- Login + Register modes with **Donor / NGO** role selection.
+- Session persisted in `localStorage` (`givenear_user_session_v1`) and restored on reload.
+- Password validation (min 6 chars), email format check, phone validation.
+- NGO accounts can register with organization name, Darpan/registration ID, field coordinator and phone.
+- Role-based actions: posting donations requires a Donor session, claiming listings / posting NGO needs requires an NGO session (guests are prompted to login).
+- Claim modal and donation form prefill details from the logged-in session.
+
+> Note: This is a front-end demo auth layer (localStorage + demo-grade hashing). Swap `services/auth.ts` calls for a real backend API when integrating one.
+
+## Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { DonationItem, DonationCategory } from '../types';
+import type { DonationItem, DonationCategory, UserSession, UserRole, AuthAction } from '../types';
 import { DonationMap } from './DonationMap';
 import { 
   Search, MapPin, Clock, CheckCircle2, Navigation, Layers, 
@@ -10,6 +10,8 @@ interface DonationBoardProps {
   items: DonationItem[];
   onClaimClick: (item: DonationItem) => void;
   onPostNewClick: () => void;
+  user?: UserSession | null;
+  onRequireAuth?: (role: UserRole, action?: AuthAction) => void;
 }
 
 const CATEGORIES: { label: string; value: DonationCategory | 'All'; emoji: string }[] = [
@@ -24,7 +26,7 @@ const CATEGORIES: { label: string; value: DonationCategory | 'All'; emoji: strin
   { label: 'Other Essentials', value: 'Other Essentials', emoji: '📦' },
 ];
 
-export const DonationBoard: React.FC<DonationBoardProps> = ({ items, onClaimClick, onPostNewClick }) => {
+export const DonationBoard: React.FC<DonationBoardProps> = ({ items, onClaimClick, onPostNewClick, user, onRequireAuth }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<DonationCategory | 'All'>('All');
@@ -72,6 +74,14 @@ export const DonationBoard: React.FC<DonationBoardProps> = ({ items, onClaimClic
     navigator.clipboard.writeText(text);
     setCopiedId(item.id);
     setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleClaimClick = (item: DonationItem) => {
+    if (user?.role === 'ngo') {
+      onClaimClick(item);
+    } else {
+      onRequireAuth?.('ngo', 'claim');
+    }
   };
 
   return (
@@ -215,7 +225,7 @@ export const DonationBoard: React.FC<DonationBoardProps> = ({ items, onClaimClic
             <span>Showing <strong>{filteredItems.length}</strong> geocoded donation locations on OpenStreetMap</span>
             <span>Zero delivery charges • Direct volunteer pickup</span>
           </div>
-          <DonationMap items={filteredItems} onClaimClick={onClaimClick} selectedCity={selectedCity} />
+          <DonationMap items={filteredItems} onClaimClick={handleClaimClick} selectedCity={selectedCity} />
         </div>
       ) : (
         <div>
@@ -250,7 +260,7 @@ export const DonationBoard: React.FC<DonationBoardProps> = ({ items, onClaimClic
                 return (
                   <div
                     key={item.id}
-                    className={`bg-[#FFFFFF] border rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-md ${
+                    className={`bg-[#FFFFFF] border rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
                       isClaimed 
                         ? 'border-zinc-200 bg-zinc-50/50 opacity-90' 
                         : 'border-[#D9DCD2] hover:border-[#1F4D3D]/40'
@@ -338,7 +348,7 @@ export const DonationBoard: React.FC<DonationBoardProps> = ({ items, onClaimClic
                         </div>
                       ) : (
                         <button
-                          onClick={() => onClaimClick(item)}
+                          onClick={() => handleClaimClick(item)}
                           className="w-full bg-[#1F4D3D] hover:bg-[#173B2E] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer group"
                         >
                           <Navigation className="w-4 h-4 text-[#E8A33D] group-hover:translate-x-0.5 transition-transform" />
